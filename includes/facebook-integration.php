@@ -837,35 +837,26 @@ class Disciple_Tools_Facebook_Integration {
                 ]
             ];
             global $wpdb;
-            $file = fopen( "fb_lock.txt", "w+" );
-            if ( flock( $file, LOCK_EX ) ) {
-                $already_created = $wpdb->get_results( $wpdb->prepare(
-                    "SELECT histid
-                    FROM `$wpdb->dt_activity_log`
-                    WHERE 
-                        `object_type` = 'facebook'
-                    AND
-                        `object_note` = %s
-                    ", $participant['id']
-                ), ARRAY_A );
+            session_start();
+            $already_created = $wpdb->get_results( $wpdb->prepare(
+                "SELECT histid
+                FROM `$wpdb->dt_activity_log`
+                WHERE 
+                    `object_type` = 'facebook'
+                AND
+                    `object_note` = %s
+                ", $participant['id']
+            ), ARRAY_A );
 
-                if ( sizeof( $already_created ) === 0 ) {
-                    dt_activity_insert( [
-                        'action'      => 'fb_create',
-                        'object_type' => "facebook",
-                        'object_note' => $participant['id'],
-                    ] );
-                    flock( $file, LOCK_UN );
-                    Disciple_Tools_Contacts::create_contact( $fields, false );
-                } else {
-                    flock( $file, LOCK_UN );
-                }
-            } else {
-                flock( $file, LOCK_UN );
-                if ( $times_tried === 0 ) {
-                    self::update_or_create_contact( $participant, $updated_time, $page, 1 );
-                }
+            if ( sizeof( $already_created ) === 0 ) {
+                dt_activity_insert( [
+                    'action'      => 'fb_create',
+                    'object_type' => "facebook",
+                    'object_note' => $participant['id'],
+                ] );
+                Disciple_Tools_Contacts::create_contact( $fields, false );
             }
+            session_write_close();
         }
     }
 
