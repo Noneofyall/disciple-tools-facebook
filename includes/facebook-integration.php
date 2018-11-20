@@ -204,6 +204,16 @@ class Disciple_Tools_Facebook_Integration {
                                     </td>
                                 </tr>
                                 <?php endif; ?>
+                                <tr>
+                                    <td>
+                                        Email Address to contact if the D.T to Facebook link breaks
+                                    </td>
+                                    <td>
+                                        <input name="contact_email_address" type="email" value="<?php echo esc_html( get_option( "facebook_contact_email", "" ) ) ?>">
+                                        <button class="button" name="save_email" type="submit">Save Email</button>
+
+                                    </td>
+                                </tr>
 
                                 </tbody>
                             </table>
@@ -544,6 +554,15 @@ class Disciple_Tools_Facebook_Integration {
                     wp_redirect( esc_url_raw( wp_unslash( $_SERVER["HTTP_REFERER"] ) ) );
                     exit;
                 }
+            } elseif ( isset( $_POST["save_email"], $_POST["contact_email_address"] ) ){
+                $email = sanitize_text_field( wp_unslash( $_POST["contact_email_address"] ) );
+                if ( !empty( $email )){
+                    update_option( "facebook_contact_email", $email );
+                }
+                if ( isset( $_SERVER["HTTP_REFERER"] )){
+                    wp_redirect( esc_url_raw( wp_unslash( $_SERVER["HTTP_REFERER"] ) ) );
+                    exit;
+                }
             }
         }
     }
@@ -717,9 +736,13 @@ class Disciple_Tools_Facebook_Integration {
                     }
                 }
             } else {
+                dt_write_log( "error1" );
+                dt_write_log( $conversations_request );
                 $this->display_error( $conversations_request->get_error_message() );
             }
         } else {
+            dt_write_log( "error2" );
+            dt_write_log( $conversations_request );
             $this->display_error( $conversations_request->get_error_message() );
         }
     }
